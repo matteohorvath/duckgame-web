@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 export default class MainScene extends Phaser.Scene {
-  private logo!: Phaser.GameObjects.Image;
+  private logo!: Phaser.GameObjects.Rectangle;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private speed: number = 200;
 
@@ -10,15 +10,14 @@ export default class MainScene extends Phaser.Scene {
   }
 
   preload() {
-    // Load assets here
-    this.load.image('logo', 'path/to/logo.png');
+    // Removed image loading as we're using a simple black rectangle
   }
 
   create() {
-    // Add game objects here
-    this.logo = this.add.image(this.scale.width / 2, this.scale.height / 2, 'logo');
+    // Add a black rectangle as the logo
+    this.logo = this.add.rectangle(this.scale.width / 2, this.scale.height / 2, 100, 100, 0x000000);
 
-    // Example: Make the logo interactive
+    // Make the rectangle interactive
     this.logo.setInteractive();
     this.logo.on('pointerdown', () => {
       this.scene.restart();
@@ -53,7 +52,7 @@ export default class MainScene extends Phaser.Scene {
     this.logo.x += velocityX * dt;
     this.logo.y += velocityY * dt;
 
-    // Optional: Keep the logo within the screen bounds
+    // Keep the rectangle within the screen bounds
     this.logo.x = Phaser.Math.Clamp(this.logo.x, this.logo.width / 2, this.scale.width - this.logo.width / 2);
     this.logo.y = Phaser.Math.Clamp(this.logo.y, this.logo.height / 2, this.scale.height - this.logo.height / 2);
   }
