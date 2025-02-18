@@ -1,38 +1,31 @@
+import Phaser from 'phaser';
 
 export interface Asset {
   type: 'image' | 'audio';
+  key: string;
   url: string;
 }
 
 export class AssetLoader {
-  private cache: Map<string, HTMLImageElement | HTMLAudioElement> = new Map();
-  private loading: Promise<void>[] = [];
+  constructor(private scene: Phaser.Scene) {}
 
-  async loadAssets(assets: Asset[]): Promise<void> {
-    this.loading = assets.map(asset => this.loadAsset(asset));
-    await Promise.all(this.loading);
+  loadAssets(assets: Asset[]): void {
+    assets.forEach(asset => {
+      if (asset.type === 'image') {
+        this.scene.load.image(asset.key, asset.url);
+      } else if (asset.type === 'audio') {
+        this.scene.load.audio(asset.key, asset.url);
+      }
+    });
   }
 
-  private async loadAsset(asset: Asset): Promise<void> {
-    if (asset.type === 'image') {
-      const image = new Image();
-      image.src = asset.url;
-      await new Promise((resolve, reject) => {
-        image.onload = resolve;
-        image.onerror = reject;
-      });
-      this.cache.set(asset.url, image);
-    } else if (asset.type === 'audio') {
-      const audio = new Audio(asset.url);
-      await new Promise((resolve, reject) => {
-        audio.oncanplaythrough = resolve;
-        audio.onerror = reject;
-      });
-      this.cache.set(asset.url, audio);
-    }
-  }
+  getAsset(key: string): Phaser.Textures.Texture | Phaser.Sound.BaseSound | undefined {
+    const texture = this.scene.textures.get(key);
+    if (texture.exists) return texture;
 
-  getAsset(url: string): HTMLImageElement | HTMLAudioElement | undefined {
-    return this.cache.get(url);
+    const sound = this.scene.sound.get(key);
+    if (sound.exists) return sound;
+
+    return undefined;
   }
 }

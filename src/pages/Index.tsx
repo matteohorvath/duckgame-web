@@ -1,45 +1,42 @@
-
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { Game } from '../engine/Game';
+import MainScene from '../scenes/MainScene';
 
 const Index = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gameRef = useRef<Game | null>(null);
-
   useEffect(() => {
-    if (!canvasRef.current) return;
-
-    const game = new Game({
+    const config: Phaser.Types.Core.GameConfig = {
+      type: Phaser.AUTO,
       width: window.innerWidth,
       height: window.innerHeight,
-      canvas: canvasRef.current,
-    });
+      parent: 'phaser-container',
+      scene: [MainScene],
+      physics: {
+        default: 'arcade',
+        arcade: {
+          debug: false,
+        },
+      },
+      backgroundColor: '#ffffff',
+    };
 
-    gameRef.current = game;
+    const game = new Game(config);
 
     // Handle window resize
     const handleResize = () => {
-      if (!canvasRef.current) return;
-      canvasRef.current.width = window.innerWidth;
-      canvasRef.current.height = window.innerHeight;
+      game.scale.resize(window.innerWidth, window.innerHeight);
     };
 
     window.addEventListener('resize', handleResize);
 
     return () => {
-      game.destroy();
+      game.destroy(true);
       window.removeEventListener('resize', handleResize);
     };
   }, []);
 
   return (
     <div className="relative w-full h-screen bg-gradient-to-b from-gray-50 to-gray-100 overflow-hidden">
-      <div className="absolute inset-0 z-10">
-        <canvas
-          ref={canvasRef}
-          className="w-full h-full"
-        />
-      </div>
+      <div id="phaser-container" className="absolute inset-0 z-10"></div>
       
       {/* Debug Panel */}
       <div className="absolute top-4 right-4 z-20">
