@@ -62,7 +62,7 @@ export default class MainScene extends Phaser.Scene {
 
     // Jump with space bar
     if (this.jumpKey.isDown && logoBody.body.touching.down) {
-      logoBody.setVelocityY(-500);
+      logoBody.setVelocityY(-245); // Adjusted to achieve approximately 100 pixels jump
     }
   }
 }
