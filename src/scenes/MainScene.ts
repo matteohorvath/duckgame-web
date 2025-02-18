@@ -4,6 +4,7 @@ export default class MainScene extends Phaser.Scene {
   private logo!: Phaser.GameObjects.Rectangle;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private speed: number = 200;
+  private platform!: Phaser.GameObjects.Rectangle;
 
   constructor() {
     super({ key: 'MainScene' });
@@ -14,14 +15,25 @@ export default class MainScene extends Phaser.Scene {
   }
 
   create() {
-    // Add a black rectangle as the logo
+    // Add a black rectangle as the logo with physics enabled
     this.logo = this.add.rectangle(this.scale.width / 2, this.scale.height / 2, 100, 100, 0x000000);
+    this.physics.add.existing(this.logo);
+    const logoBody = this.logo.body as Phaser.Physics.Arcade.Body;
+    logoBody.setCollideWorldBounds(true);
+    logoBody.setGravityY(300);
 
     // Make the rectangle interactive
     this.logo.setInteractive();
     this.logo.on('pointerdown', () => {
       this.scene.restart();
     });
+
+    // Add a blue platform
+    this.platform = this.add.rectangle(this.scale.width / 2, this.scale.height - 50, 400, 20, 0x0000ff);
+    this.physics.add.existing(this.platform, true); // true makes it static
+
+    // Add collision between logo and platform
+    this.physics.add.collider(this.logo, this.platform);
 
     // Setup keyboard input
     this.cursors = this.input.keyboard.addKeys({
@@ -33,9 +45,8 @@ export default class MainScene extends Phaser.Scene {
   }
 
   update(time: number, delta: number) {
-    const dt = delta / 1000; // Convert delta to seconds
+    const logoBody = this.logo.body as Phaser.Physics.Arcade.Body;
     let velocityX = 0;
-    let velocityY = 0;
 
     if (this.cursors.left.isDown) {
       velocityX = -this.speed;
@@ -43,17 +54,11 @@ export default class MainScene extends Phaser.Scene {
       velocityX = this.speed;
     }
 
-    if (this.cursors.up.isDown) {
-      velocityY = -this.speed;
-    } else if (this.cursors.down.isDown) {
-      velocityY = this.speed;
+    logoBody.setVelocityX(velocityX);
+
+    // Optional: Allow jumping or other interactions
+    if (this.cursors.up.isDown && logoBody.body.touching.down) {
+      logoBody.setVelocityY(-500);
     }
-
-    this.logo.x += velocityX * dt;
-    this.logo.y += velocityY * dt;
-
-    // Keep the rectangle within the screen bounds
-    this.logo.x = Phaser.Math.Clamp(this.logo.x, this.logo.width / 2, this.scale.width - this.logo.width / 2);
-    this.logo.y = Phaser.Math.Clamp(this.logo.y, this.logo.height / 2, this.scale.height - this.logo.height / 2);
   }
 }
