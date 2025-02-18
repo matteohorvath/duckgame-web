@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 export default class MainScene extends Phaser.Scene {
   private logo!: Phaser.GameObjects.Rectangle;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+  private jumpKey!: Phaser.Input.Keyboard.Key;
   private speed: number = 200;
   private platform!: Phaser.GameObjects.Rectangle;
 
@@ -42,6 +43,9 @@ export default class MainScene extends Phaser.Scene {
       left: Phaser.Input.Keyboard.KeyCodes.A,
       right: Phaser.Input.Keyboard.KeyCodes.D,
     });
+
+    // Add space bar for jump
+    this.jumpKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
   }
 
   update(time: number, delta: number) {
@@ -56,8 +60,8 @@ export default class MainScene extends Phaser.Scene {
 
     logoBody.setVelocityX(velocityX);
 
-    // Optional: Allow jumping or other interactions
-    if (this.cursors.up.isDown && logoBody.body.touching.down) {
+    // Jump with space bar
+    if (this.jumpKey.isDown && logoBody.body.touching.down) {
       logoBody.setVelocityY(-500);
     }
   }
