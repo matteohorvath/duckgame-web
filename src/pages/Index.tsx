@@ -17,8 +17,18 @@ const Index = () => {
 
     gameRef.current = game;
 
+    // Handle window resize
+    const handleResize = () => {
+      if (!canvasRef.current) return;
+      canvasRef.current.width = window.innerWidth;
+      canvasRef.current.height = window.innerHeight;
+    };
+
+    window.addEventListener('resize', handleResize);
+
     return () => {
       game.destroy();
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 
@@ -36,9 +46,9 @@ const Index = () => {
         <div className="glass-panel rounded-lg p-4 space-y-2 min-w-[200px]">
           <h2 className="text-sm font-medium text-gray-700">Debug Panel</h2>
           <div className="space-y-1">
+            <p className="text-xs text-gray-500">Controls: WASD to move</p>
             <p className="text-xs text-gray-500">FPS: 60</p>
-            <p className="text-xs text-gray-500">Objects: 0</p>
-            <p className="text-xs text-gray-500">Memory: 0 MB</p>
+            <p className="text-xs text-gray-500">Objects: 1</p>
           </div>
         </div>
       </div>
