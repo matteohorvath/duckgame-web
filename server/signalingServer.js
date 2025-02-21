@@ -12,6 +12,7 @@ const wss = new WebSocket.Server({ server, perMessageDeflate: false });
 // Controls and MainScene can update/query this state.
 let gameState = {
   joystick: { x: 0, y: 0 },
+  velocity: { x: 0, y: 0 },
 };
 
 // Throttled broadcasting: schedule to send state updates

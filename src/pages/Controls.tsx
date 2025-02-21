@@ -5,12 +5,32 @@ import React, { useRef, useState, useEffect } from "react";
 // This radius determines how far the joystick stick can move
 const JOYSTICK_RADIUS = 50;
 const STICK_RADIUS = 20;
+const BUTTON_SIZE = 60;
+
+interface GameState {
+  joystick: {
+    x: number;
+    y: number;
+  };
+  buttons: {
+    a: boolean;
+    b: boolean;
+    x: boolean;
+    y: boolean;
+  };
+}
 
 const Controls = () => {
   // Store the joystick stick's position relative to the center,
   // the shoot counter, websocket connection, and the WebRTC connection URL.
   const [stickPosition, setStickPosition] = useState({ x: 0, y: 0 });
-  const [shootCounter, setShootCounter] = useState(0);
+  const [buttons, setButtons] = useState({
+    a: false,
+    b: false,
+    x: false,
+    y: false,
+  });
+  const touchMoveCounter = useRef(0);
 
   const joystickRef = useRef<HTMLDivElement>(null);
 
@@ -18,7 +38,7 @@ const Controls = () => {
   const [signalingSocket, setSignalingSocket] = useState<WebSocket | null>(
     null
   );
-  const [serverURL, setServerURL] = useState("ws://172.20.10.2:3001");
+  const [serverURL, setServerURL] = useState("ws://192.168.0.82:3001/ws");
   useEffect(() => {
     if (!serverURL) return;
     const sock = new WebSocket(serverURL);
@@ -39,71 +59,95 @@ const Controls = () => {
 
   // Called when the user moves their finger on the joystick
   const handleTouchMove = (e: React.TouchEvent) => {
-    e.preventDefault();
     if (!joystickRef.current) return;
 
     const touch = e.touches[0];
     const rect = joystickRef.current.getBoundingClientRect();
-    // Calculate center of the joystick
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
+    const x = touch.clientX - rect.left - JOYSTICK_RADIUS;
+    const y = touch.clientY - rect.top - JOYSTICK_RADIUS;
 
-    // Calculate the displacement from center
-    const deltaX = touch.clientX - centerX;
-    const deltaY = touch.clientY - centerY;
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    const distance = Math.sqrt(x * x + y * y);
+    const angle = Math.atan2(y, x);
 
-    let newX = deltaX;
-    let newY = deltaY;
-
-    // Limit the movement within the joystick radius
-    if (distance > JOYSTICK_RADIUS) {
-      const scale = JOYSTICK_RADIUS / distance;
-      newX = deltaX * scale;
-      newY = deltaY * scale;
-    }
+    const limitedDistance = Math.min(distance, JOYSTICK_RADIUS);
+    const newX = Math.cos(angle) * limitedDistance;
+    const newY = Math.sin(angle) * limitedDistance;
 
     setStickPosition({ x: newX, y: newY });
 
-    // Calculate normalized direction which you can pass to your character controller in Index.tsx
+    // Normalize and send to server
     const normalizedX = newX / JOYSTICK_RADIUS;
     const normalizedY = newY / JOYSTICK_RADIUS;
-    //send 0 +- 0.5 or +- 1 based on the closest value
-    const normalizedXInt = Math.round(normalizedX * 2) / 2;
-    const normalizedYInt = Math.round(normalizedY * 2) / 2;
 
-    console.log("Joystick move:", { x: normalizedXInt, y: normalizedYInt });
-
-    // Only send every 5th event
-    if (handleTouchMove.counter === undefined) {
-      handleTouchMove.counter = 0;
-    }
-    handleTouchMove.counter++;
-
-    if (handleTouchMove.counter % 5 === 0) {
-      sendState({ joystick: { x: normalizedXInt, y: normalizedYInt } });
+    if (signalingSocket?.readyState === WebSocket.OPEN) {
+      signalingSocket.send(
+        JSON.stringify({
+          type: "action",
+          data: {
+            joystick: { x: normalizedX, y: normalizedY },
+            buttons: buttons,
+          },
+        })
+      );
     }
   };
-  const sendState = (state: any) => {
-    if (signalingSocket && signalingSocket.readyState === WebSocket.OPEN) {
-      signalingSocket.send(JSON.stringify({ type: "action", data: state }));
-    } else {
-      console.error("Controls: Signaling socket is not open.");
-    }
-  };
+
   // Reset the joystick when the touch ends
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    e.preventDefault();
+  const handleTouchEnd = () => {
     setStickPosition({ x: 0, y: 0 });
-    console.log("Joystick released");
-    //send this to server
-    sendState({ joystick: { x: 0, y: 0 } });
+    if (signalingSocket?.readyState === WebSocket.OPEN) {
+      signalingSocket.send(
+        JSON.stringify({
+          type: "action",
+          data: {
+            joystick: { x: 0, y: 0 },
+            buttons: buttons,
+          },
+        })
+      );
+    }
   };
 
-  // Trigger the shoot event
-  const handleShoot = () => {
-    console.log("Shoot triggered!");
-    setShootCounter(shootCounter + 1);
+  const handleButtonPress = (button: keyof typeof buttons) => {
+    setButtons((prev) => {
+      const newButtons = { ...prev, [button]: true };
+      if (signalingSocket?.readyState === WebSocket.OPEN) {
+        signalingSocket.send(
+          JSON.stringify({
+            type: "action",
+            data: {
+              joystick: {
+                x: stickPosition.x / JOYSTICK_RADIUS,
+                y: stickPosition.y / JOYSTICK_RADIUS,
+              },
+              buttons: newButtons,
+            },
+          })
+        );
+      }
+      return newButtons;
+    });
+  };
+
+  const handleButtonRelease = (button: keyof typeof buttons) => {
+    setButtons((prev) => {
+      const newButtons = { ...prev, [button]: false };
+      if (signalingSocket?.readyState === WebSocket.OPEN) {
+        signalingSocket.send(
+          JSON.stringify({
+            type: "action",
+            data: {
+              joystick: {
+                x: stickPosition.x / JOYSTICK_RADIUS,
+                y: stickPosition.y / JOYSTICK_RADIUS,
+              },
+              buttons: newButtons,
+            },
+          })
+        );
+      }
+      return newButtons;
+    });
   };
 
   return (
@@ -117,25 +161,22 @@ const Controls = () => {
         padding: 20,
         zIndex: 9999,
         background: "#f9f9f9",
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
       }}
     >
-      <div>
-        {/*display the values from the joystick and the shoot counter*/}
-        <p>
-          Joystick: {stickPosition.x}, {stickPosition.y}
-        </p>
-        <p>Shoot: {shootCounter}</p>
-        {/* Display the received offer SDP (for debugging) */}
-      </div>
+      {/* Left side - Joystick */}
       <div
         style={{
+          flex: 2,
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "flex-start",
           alignItems: "center",
-          height: "calc(100% - 50px)",
+          paddingLeft: "50px",
         }}
       >
-        {/* Joystick Container */}
         <div
           ref={joystickRef}
           onTouchStart={handleTouchStart}
@@ -148,11 +189,9 @@ const Controls = () => {
             background: "#ddd",
             borderRadius: "50%",
             touchAction: "none",
-            margin: "0 auto",
-            cursor: "pointer",
+            boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
           }}
         >
-          {/* Joystick Stick */}
           <div
             style={{
               position: "absolute",
@@ -162,24 +201,93 @@ const Controls = () => {
               height: STICK_RADIUS * 2,
               background: "#888",
               borderRadius: "50%",
+              boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
             }}
           />
         </div>
+      </div>
 
-        {/* Shoot Button */}
+      {/* Right side - Xbox buttons */}
+      <div
+        style={{
+          flex: 3,
+          display: "grid",
+          gridTemplateColumns: "repeat(2, 1fr)",
+          gap: "20px",
+          padding: "30px",
+          maxWidth: "200px",
+          rotate: "45deg",
+          justifySelf: "flex-end",
+          marginRight: "50px",
+        }}
+      >
         <button
-          onTouchStart={handleShoot}
+          onTouchStart={() => handleButtonPress("y")}
+          onTouchEnd={() => handleButtonRelease("y")}
           style={{
-            width: 80,
-            height: 80,
-            background: "red",
+            width: BUTTON_SIZE,
+            height: BUTTON_SIZE,
+            background: buttons.y ? "#ffeb3b" : "#ffd600",
             border: "none",
             borderRadius: "50%",
-            color: "white",
-            fontSize: 18,
+            fontSize: "24px",
+            color: "#333",
+            rotate: "-45deg",
+            fontWeight: "bold",
           }}
         >
-          Shoot
+          Y
+        </button>
+        <button
+          onTouchStart={() => handleButtonPress("b")}
+          onTouchEnd={() => handleButtonRelease("b")}
+          style={{
+            width: BUTTON_SIZE,
+            height: BUTTON_SIZE,
+            background: buttons.b ? "#f44336" : "#d32f2f",
+            border: "none",
+            borderRadius: "50%",
+            fontSize: "24px",
+            color: "white",
+            rotate: "-45deg",
+            fontWeight: "bold",
+          }}
+        >
+          B
+        </button>
+        <button
+          onTouchStart={() => handleButtonPress("x")}
+          onTouchEnd={() => handleButtonRelease("x")}
+          style={{
+            width: BUTTON_SIZE,
+            height: BUTTON_SIZE,
+            background: buttons.x ? "#2196f3" : "#1976d2",
+            border: "none",
+            borderRadius: "50%",
+            fontSize: "24px",
+            color: "white",
+            rotate: "-45deg",
+            fontWeight: "bold",
+          }}
+        >
+          X
+        </button>
+        <button
+          onTouchStart={() => handleButtonPress("a")}
+          onTouchEnd={() => handleButtonRelease("a")}
+          style={{
+            width: BUTTON_SIZE,
+            height: BUTTON_SIZE,
+            background: buttons.a ? "#4caf50" : "#388e3c",
+            border: "none",
+            borderRadius: "50%",
+            fontSize: "24px",
+            color: "white",
+            rotate: "-45deg",
+            fontWeight: "bold",
+          }}
+        >
+          A
         </button>
       </div>
     </div>
