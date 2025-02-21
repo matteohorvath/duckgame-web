@@ -162,4 +162,4 @@ The game uses a custom WebSocket protocol for real-time communication:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details. Have fun!
