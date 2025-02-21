@@ -33,6 +33,7 @@ A real-time multiplayer game built with Phaser 3, React, and Rust WebSocket serv
 ### Prerequisites
 
 - Node.js (v16 or higher)
+- Bun
 - Rust (latest stable)
 - Cargo
 
