@@ -41,14 +41,14 @@ A real-time multiplayer game built with Phaser 3, React, and Rust WebSocket serv
 1. Clone the repository:
 
 ```bash
-git clone <your-repository-url>
-cd <project-directory>
+git clone https://github.com/matteohorvath/duckgame-web
+cd duckgame-web
 ```
 
 2. Install frontend dependencies:
 
 ```bash
-npm install
+bun install
 ```
 
 3. Build the Rust server:
@@ -70,7 +70,7 @@ cargo run
 2. Start the frontend development server:
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 ## Game Controls
@@ -113,10 +113,10 @@ npm run dev
 
 ### Available Scripts
 
-- `npm run dev`: Start the development server
-- `npm run build`: Build the production version
-- `npm run lint`: Run ESLint
-- `npm run test`: Run tests
+- `bun run dev`: Start the development server
+- `bun run build`: Build the production version
+- `bun run lint`: Run ESLint
+- `bun run test`: Run tests
 
 ### Server Commands
 
