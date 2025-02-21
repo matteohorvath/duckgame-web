@@ -1,69 +1,165 @@
-# Welcome to your Lovable project
+# Phaser WebSocket Game
 
-## Project info
+A real-time multiplayer game built with Phaser 3, React, and Rust WebSocket server. The game features mobile-friendly controls with haptic feedback and a responsive game environment.
 
-**URL**: https://lovable.dev/projects/689f62fa-3f80-4f5b-bff6-d7c46935c04f
+## Features
 
-## How can I edit this code?
+- Real-time WebSocket communication
+- Mobile-optimized controls with Xbox-style button layout
+- Haptic feedback for mobile devices
+- Physics-based gameplay
+- Shooting mechanics
+- Demo page for connection testing
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+### Frontend
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/689f62fa-3f80-4f5b-bff6-d7c46935c04f) and start prompting.
+- React
+- TypeScript
+- Phaser 3 Game Engine
+- TailwindCSS
+- React Router
 
-Changes made via Lovable will be committed automatically to this repo.
+### Backend
 
-**Use your preferred IDE**
+- Rust
+- Tokio (async runtime)
+- WebSocket server
+- Serde for JSON serialization
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Getting Started
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Prerequisites
 
-Follow these steps:
+- Node.js (v16 or higher)
+- Rust (latest stable)
+- Cargo
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Installation
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+1. Clone the repository:
 
-# Step 3: Install the necessary dependencies.
-npm i
+```bash
+git clone <your-repository-url>
+cd <project-directory>
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+2. Install frontend dependencies:
+
+```bash
+npm install
+```
+
+3. Build the Rust server:
+
+```bash
+cd server
+cargo build --release
+```
+
+### Running the Project
+
+1. Start the Rust WebSocket server:
+
+```bash
+cd server
+cargo run
+```
+
+2. Start the frontend development server:
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Game Controls
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Mobile Controls
 
-**Use GitHub Codespaces**
+- Left side: Touch joystick for movement
+- Right side: Xbox-style button layout
+  - A (Green): Jump
+  - X (Blue): Shoot
+  - B (Red): Action
+  - Y (Yellow): Action
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Keyboard Controls (Desktop)
 
-## What technologies are used for this project?
+- WASD: Movement
+- Space: Jump
 
-This project is built with .
+## Project Structure
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```
+├── src/
+│   ├── pages/
+│   │   ├── Controls.tsx    # Mobile controls interface
+│   │   ├── Demo.tsx       # Connection testing page
+│   │   └── Index.tsx      # Main game page
+│   ├── scenes/
+│   │   └── MainScene.ts   # Phaser game scene
+│   └── App.tsx            # React application root
+├── server/
+│   ├── src/
+│   │   ├── main.rs        # Server entry point
+│   │   ├── game_state.rs  # Game state management
+│   │   └── websocket.rs   # WebSocket handling
+│   └── Cargo.toml         # Rust dependencies
+└── README.md
+```
 
-## How can I deploy this project?
+## Development
 
-Simply open [Lovable](https://lovable.dev/projects/689f62fa-3f80-4f5b-bff6-d7c46935c04f) and click on Share -> Publish.
+### Available Scripts
 
-## I want to use a custom domain - is that possible?
+- `npm run dev`: Start the development server
+- `npm run build`: Build the production version
+- `npm run lint`: Run ESLint
+- `npm run test`: Run tests
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+### Server Commands
+
+- `cargo run`: Run the WebSocket server
+- `cargo test`: Run server tests
+- `cargo build --release`: Build production server
+
+## Network Protocol
+
+The game uses a custom WebSocket protocol for real-time communication:
+
+### Client -> Server Messages
+
+```typescript
+{
+  type: "action",
+  data: {
+    joystick: { x: number, y: number },
+    buttons: { a: boolean, b: boolean, x: boolean, y: boolean }
+  }
+}
+```
+
+### Server -> Client Messages
+
+```typescript
+{
+  type: "state",
+  data: {
+    joystick: { x: number, y: number },
+    buttons: { a: boolean, b: boolean, x: boolean, y: boolean }
+  }
+}
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
