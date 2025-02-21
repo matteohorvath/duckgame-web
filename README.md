@@ -1,4 +1,4 @@
-# Phaser WebSocket Game
+# DuckGame Web
 
 A real-time multiplayer game built with Phaser 3, React, and Rust WebSocket server. The game features mobile-friendly controls with haptic feedback and a responsive game environment.
 
@@ -162,4 +162,4 @@ The game uses a custom WebSocket protocol for real-time communication:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the LICENSE file for details. 
