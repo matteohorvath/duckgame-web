@@ -1,45 +1,48 @@
 mod game_state;
 mod websocket;
 
+use game_state::{Buttons, GameState, Message, Vector2};
 use std::{net::SocketAddr, time::Duration};
 use tokio::{net::TcpListener, time};
-use game_state::{GameState, Message, Buttons, Vector2};
 
 const PHYSICS_UPDATE_RATE: Duration = Duration::from_millis(16); // ~60 FPS
 
 #[tokio::main]
 async fn main() {
     env_logger::init();
-    
-    let addr = SocketAddr::from(([192, 168, 0, 82], 3001));
+
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3001));
     let listener = TcpListener::bind(&addr).await.expect("Failed to bind");
     println!("Game Server Started on: {}", addr);
     println!("----------------------------------------");
 
-    let game_state = game_state::GameState::new();
-    
-    // Spawn physics update task
-    let physics_state = game_state.clone();
+    let players_state = game_state::new_players();
+
+    // Spawn physics update task for multiple players
+    let players_for_physics = players_state.clone();
     tokio::spawn(async move {
         let mut interval = time::interval(PHYSICS_UPDATE_RATE);
         loop {
             interval.tick().await;
-            let mut state = physics_state.lock().await;
-            
-            update_joysticks(&mut state).await;
-            
-            // Broadcast updated state
-            let state_msg = serde_json::to_string(&Message {
+            let mut players = players_for_physics.lock().await;
+
+            // Update each player's game state (e.g., joystick, buttons, etc.)
+            for (_, player_state) in players.iter_mut() {
+                update_joysticks(player_state).await;
+            }
+
+            // Broadcast all players' states
+            let state_msg = serde_json::to_string(&game_state::Message {
                 type_: "state".to_string(),
-                data: serde_json::to_value(&*state).unwrap(),
+                data: serde_json::to_value(&*players).unwrap(),
             })
             .unwrap();
-            
+
             websocket::broadcast_message(&state_msg).await;
         }
     });
 
-    // Accept connections
+    // Accept connections for multiple players
     while let Ok((stream, addr)) = listener.accept().await {
         println!("\nNew Client Connection:");
         println!("----------------------------------------");
@@ -47,8 +50,19 @@ async fn main() {
         println!("Connection Time: {:?}", time::Instant::now());
         println!("----------------------------------------");
 
-        let game_state = game_state.clone();
-        tokio::spawn(websocket::handle_connection(stream, addr, game_state));
+        // Use the connection's address as a player id string.
+        let player_id = format!("{}", addr);
+        {
+            let mut players = players_state.lock().await;
+            players.insert(player_id.clone(), game_state::GameState::new_default());
+        }
+        let players_state_clone = players_state.clone();
+        tokio::spawn(websocket::handle_connection(
+            stream,
+            addr,
+            players_state_clone,
+            player_id,
+        ));
     }
 }
 
@@ -59,18 +73,6 @@ async fn update_joysticks(state: &mut GameState) {
     state.joystick.y = state.joystick.y.clamp(-1.0, 1.0);
 
     // Process button states
-    if state.buttons.a {
-        println!("Button A pressed");
-    }
-    if state.buttons.b {
-        println!("Button B pressed");
-    }
-    if state.buttons.x {
-        println!("Button X pressed");
-    }
-    if state.buttons.y {
-        println!("Button Y pressed");
-    }
 
     // Create state message with both joystick and button data
     let state_msg = serde_json::to_string(&Message {

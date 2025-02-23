@@ -70,7 +70,7 @@ fn main() {
 async fn run(options: Opt) -> Result<()> {
     let url = options.url;
     let url_host = strip_ipv6_brackets(url.host_str().unwrap());
-    let remote = (url_host, url.port().unwrap_or(4433))
+    let remote = (url_host, url.port().unwrap_or(4413))
         .to_socket_addrs()?
         .next()
         .ok_or_else(|| anyhow!("couldn't resolve to an address"))?;

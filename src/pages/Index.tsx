@@ -40,35 +40,6 @@ const Index = () => {
       <div id="phaser-container" className="absolute inset-0 z-10"></div>
 
       {/* Debug Panel */}
-      <div className="absolute top-4 right-4 z-20">
-        <div className="glass-panel rounded-lg p-4 space-y-2 min-w-[200px]">
-          <h2 className="text-sm font-medium text-gray-700">Debug Panel</h2>
-          <div className="space-y-1">
-            <p className="text-xs text-gray-500">Controls: WASD to move</p>
-            <p className="text-xs text-gray-500">FPS: 60</p>
-            <p className="text-xs text-gray-500">Objects: 1</p>
-            <p className="text-xs text-gray-500">
-              WebRTC:{" "}
-              {(() => {
-                const offer = localStorage.getItem("webrtcOffer");
-                return (
-                  <span
-                    onClick={() => {
-                      if (offer) {
-                        navigator.clipboard.writeText(offer);
-                      }
-                    }}
-                    style={{ cursor: "pointer" }}
-                    title={offer || ""}
-                  >
-                    {offer ? offer.substring(0, 20) + "..." : "Not connected"}
-                  </span>
-                );
-              })()}
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

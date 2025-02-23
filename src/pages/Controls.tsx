@@ -32,13 +32,19 @@ const Controls = () => {
   });
   const touchMoveCounter = useRef(0);
 
-  const joystickRef = useRef<HTMLDivElement>(null);
+  // Add state for joystick base position
+  const [joystickBasePosition, setJoystickBasePosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+
+  const leftPanelRef = useRef<HTMLDivElement>(null);
 
   // Create a signaling WebSocket connection using a user-specified URL.
   const [signalingSocket, setSignalingSocket] = useState<WebSocket | null>(
     null
   );
-  const [serverURL, setServerURL] = useState("ws://192.168.0.82:3001/ws");
+  const [serverURL, setServerURL] = useState("ws://192.168.0.128:3001/ws");
   useEffect(() => {
     if (!serverURL) return;
     const sock = new WebSocket(serverURL);
@@ -52,19 +58,32 @@ const Controls = () => {
     };
   }, [serverURL]);
 
-  // Called when the user touches the joystick
+  // Called when the user touches the joystick area
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
-  };
-
-  // Called when the user moves their finger on the joystick
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!joystickRef.current) return;
+    if (!leftPanelRef.current) return;
 
     const touch = e.touches[0];
-    const rect = joystickRef.current.getBoundingClientRect();
-    const x = touch.clientX - rect.left - JOYSTICK_RADIUS;
-    const y = touch.clientY - rect.top - JOYSTICK_RADIUS;
+    const rect = leftPanelRef.current.getBoundingClientRect();
+
+    // Set the joystick base position to the touch point
+    setJoystickBasePosition({
+      x: touch.clientX - rect.left,
+      y: touch.clientY - rect.top,
+    });
+    setStickPosition({ x: 0, y: 0 }); // Reset stick position
+  };
+
+  // Called when the user moves their finger
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!leftPanelRef.current || !joystickBasePosition) return;
+
+    const touch = e.touches[0];
+    const rect = leftPanelRef.current.getBoundingClientRect();
+
+    // Calculate distance from base position
+    const x = touch.clientX - rect.left - joystickBasePosition.x;
+    const y = touch.clientY - rect.top - joystickBasePosition.y;
 
     const distance = Math.sqrt(x * x + y * y);
     const angle = Math.atan2(y, x);
@@ -92,9 +111,10 @@ const Controls = () => {
     }
   };
 
-  // Reset the joystick when the touch ends
+  // Reset when touch ends
   const handleTouchEnd = () => {
     setStickPosition({ x: 0, y: 0 });
+    setJoystickBasePosition(null);
     if (signalingSocket?.readyState === WebSocket.OPEN) {
       signalingSocket.send(
         JSON.stringify({
@@ -167,44 +187,48 @@ const Controls = () => {
         alignItems: "center",
       }}
     >
-      {/* Left side - Joystick */}
+      {/* Left side - Joystick area */}
       <div
+        ref={leftPanelRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         style={{
           flex: 2,
-          display: "flex",
-          justifyContent: "flex-start",
-          alignItems: "center",
-          paddingLeft: "50px",
+          height: "100%",
+          position: "relative",
+          touchAction: "none",
+          userSelect: "none",
+          background: "rgba(0, 0, 0, 0.05)", // Subtle visual feedback
         }}
       >
-        <div
-          ref={joystickRef}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          style={{
-            position: "relative",
-            width: JOYSTICK_RADIUS * 2,
-            height: JOYSTICK_RADIUS * 2,
-            background: "#ddd",
-            borderRadius: "50%",
-            touchAction: "none",
-            boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-          }}
-        >
+        {joystickBasePosition && (
           <div
             style={{
               position: "absolute",
-              left: JOYSTICK_RADIUS - STICK_RADIUS + stickPosition.x,
-              top: JOYSTICK_RADIUS - STICK_RADIUS + stickPosition.y,
-              width: STICK_RADIUS * 2,
-              height: STICK_RADIUS * 2,
-              background: "#888",
+              left: joystickBasePosition.x - JOYSTICK_RADIUS,
+              top: joystickBasePosition.y - JOYSTICK_RADIUS,
+              width: JOYSTICK_RADIUS * 2,
+              height: JOYSTICK_RADIUS * 2,
+              background: "#ddd",
               borderRadius: "50%",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+              boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
             }}
-          />
-        </div>
+          >
+            <div
+              style={{
+                position: "absolute",
+                left: JOYSTICK_RADIUS - STICK_RADIUS + stickPosition.x,
+                top: JOYSTICK_RADIUS - STICK_RADIUS + stickPosition.y,
+                width: STICK_RADIUS * 2,
+                height: STICK_RADIUS * 2,
+                background: "#888",
+                borderRadius: "50%",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Right side - Xbox buttons */}
@@ -219,6 +243,9 @@ const Controls = () => {
           rotate: "45deg",
           justifySelf: "flex-end",
           marginRight: "50px",
+          userSelect: "none",
+          WebkitUserSelect: "none",
+          WebkitTouchCallout: "none",
         }}
       >
         <button
@@ -234,6 +261,11 @@ const Controls = () => {
             color: "#333",
             rotate: "-45deg",
             fontWeight: "bold",
+            userSelect: "none",
+            WebkitUserSelect: "none",
+            WebkitTouchCallout: "none",
+            touchAction: "manipulation",
+            cursor: "pointer",
           }}
         >
           Y
@@ -251,6 +283,11 @@ const Controls = () => {
             color: "white",
             rotate: "-45deg",
             fontWeight: "bold",
+            userSelect: "none",
+            WebkitUserSelect: "none",
+            WebkitTouchCallout: "none",
+            touchAction: "manipulation",
+            cursor: "pointer",
           }}
         >
           B
@@ -268,6 +305,11 @@ const Controls = () => {
             color: "white",
             rotate: "-45deg",
             fontWeight: "bold",
+            userSelect: "none",
+            WebkitUserSelect: "none",
+            WebkitTouchCallout: "none",
+            touchAction: "manipulation",
+            cursor: "pointer",
           }}
         >
           X
@@ -285,6 +327,11 @@ const Controls = () => {
             color: "white",
             rotate: "-45deg",
             fontWeight: "bold",
+            userSelect: "none",
+            WebkitUserSelect: "none",
+            WebkitTouchCallout: "none",
+            touchAction: "manipulation",
+            cursor: "pointer",
           }}
         >
           A

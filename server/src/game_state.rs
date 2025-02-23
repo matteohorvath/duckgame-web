@@ -1,6 +1,10 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::{fmt, sync::Arc};
 use tokio::sync::Mutex;
+
+/// A shared map of player id to that player's game state.
+pub type SharedPlayers = Arc<Mutex<HashMap<String, GameState>>>;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Vector2 {
@@ -49,8 +53,9 @@ impl fmt::Debug for GameState {
 }
 
 impl GameState {
-    pub fn new() -> Arc<Mutex<Self>> {
-        Arc::new(Mutex::new(Self {
+    /// Create a default game state for a new player.
+    pub fn new_default() -> GameState {
+        GameState {
             joystick: Vector2 { x: 0.0, y: 0.0 },
             buttons: Buttons {
                 a: false,
@@ -58,8 +63,13 @@ impl GameState {
                 x: false,
                 y: false,
             },
-        }))
+        }
     }
+}
+
+/// Create a shared players map.
+pub fn new_players() -> SharedPlayers {
+    Arc::new(Mutex::new(HashMap::new()))
 }
 
 #[derive(Serialize, Deserialize)]

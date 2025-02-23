@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+anyhow = "1.0"
 tokio = { version = "1.28", features = ["full"] }
 tokio-tungstenite = "0.20"
 futures-util = "0.3"
