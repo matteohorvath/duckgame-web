@@ -6,7 +6,7 @@ use tokio::sync::Mutex;
 /// A shared map of player id to that player's game state.
 pub type SharedPlayers = Arc<Mutex<HashMap<String, GameState>>>;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Default)]
 pub struct Vector2 {
     pub x: f32,
     pub y: f32,
@@ -18,13 +18,15 @@ impl fmt::Debug for Vector2 {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Default)]
 pub struct GameState {
+    #[serde(default)]
     pub joystick: Vector2,
+    #[serde(default)]
     pub buttons: Buttons,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Default)]
 pub struct Buttons {
     pub a: bool,
     pub b: bool,
@@ -55,15 +57,7 @@ impl fmt::Debug for GameState {
 impl GameState {
     /// Create a default game state for a new player.
     pub fn new_default() -> GameState {
-        GameState {
-            joystick: Vector2 { x: 0.0, y: 0.0 },
-            buttons: Buttons {
-                a: false,
-                b: false,
-                x: false,
-                y: false,
-            },
-        }
+        GameState::default()
     }
 }
 

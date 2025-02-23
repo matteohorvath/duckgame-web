@@ -44,12 +44,32 @@ const Controls = () => {
   const [signalingSocket, setSignalingSocket] = useState<WebSocket | null>(
     null
   );
-  const [serverURL, setServerURL] = useState("ws://192.168.0.128:3001/ws");
+  const [serverURL, setServerURL] = useState("ws://192.168.0.85:3001/ws");
+  const [isPlayer, setIsPlayer] = useState(false);
+
   useEffect(() => {
     if (!serverURL) return;
     const sock = new WebSocket(serverURL);
     sock.onopen = () => {
-      console.log("Controls: Connected to signaling server at " + serverURL);
+      // Send role when connecting
+      sock.send(
+        JSON.stringify({
+          type: "register",
+          data: {
+            role: "player", // This component is always a player (controls)
+          },
+        })
+      );
+      setIsPlayer(true);
+      console.log("Connected to server as player");
+    };
+
+    sock.onclose = () => {
+      console.log("Disconnected from server");
+      // Try to reconnect in 5 seconds
+      setTimeout(() => {
+        setSignalingSocket(new WebSocket(serverURL));
+      }, 5000);
     };
 
     setSignalingSocket(sock);
@@ -187,6 +207,22 @@ const Controls = () => {
         alignItems: "center",
       }}
     >
+      {/* Add status indicator */}
+      <div
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 10,
+          padding: "4px 8px",
+          borderRadius: 4,
+          background: isPlayer ? "#4caf50" : "#f44336",
+          color: "white",
+          fontSize: 12,
+        }}
+      >
+        {isPlayer ? "Player Controls" : "Viewer Only"}
+      </div>
+
       {/* Left side - Joystick area */}
       <div
         ref={leftPanelRef}

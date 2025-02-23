@@ -1,6 +1,7 @@
-//! This example demonstrates an HTTP server that serves files from a directory.
-//!
-//! Checkout the `README.md` for guidance.
+//! This server serves as an interface between the game client (MainScene.ts)
+//! and the mobile controls interface (Controls.tsx).
+//! It does not perform any game-related logic such as position or velocity
+//! calculations, but simply facilitates communication and file serving.
 
 use std::{
     ascii, fs, io,
