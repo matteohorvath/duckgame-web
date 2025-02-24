@@ -1,5 +1,8 @@
 # DuckGame Web
 
+Join the Telegram channel if you have any questions.
+[https://t.me/+7B-EH8pOfeVmM2Zk](https://t.me/+7B-EH8pOfeVmM2Zk)
+
 A real-time multiplayer game built with Phaser 3, React, and Rust WebSocket server. The game features mobile-friendly controls with haptic feedback and a responsive game environment.
 
 ## Features
