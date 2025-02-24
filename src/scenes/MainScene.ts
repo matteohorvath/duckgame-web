@@ -26,7 +26,7 @@ interface Player {
 export default class MainScene extends Phaser.Scene {
   private players: { [id: string]: Player } = {};
   private ws!: WebSocket;
-  private serverUrl = "ws://192.168.0.85:3001";
+  private serverUrl = "ws://192.168.0.128:3001";
   private playerId!: string;
   private speed: number = 650;
   private debugText!: Phaser.GameObjects.Text;

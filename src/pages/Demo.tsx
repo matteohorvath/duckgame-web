@@ -23,7 +23,7 @@ const Demo = () => {
   >("disconnected");
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [ws, setWs] = useState<WebSocket | null>(null);
-  const serverUrl = "ws://192.168.0.85:3001";
+  const serverUrl = "ws://192.168.0.128:3001";
 
   useEffect(() => {
     const socket = new WebSocket(serverUrl);

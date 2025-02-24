@@ -44,7 +44,7 @@ const Controls = () => {
   const [signalingSocket, setSignalingSocket] = useState<WebSocket | null>(
     null
   );
-  const [serverURL, setServerURL] = useState("ws://192.168.0.85:3001/ws");
+  const [serverURL, setServerURL] = useState("ws://192.168.0.128:3001/ws");
   const [isPlayer, setIsPlayer] = useState(false);
 
   useEffect(() => {
