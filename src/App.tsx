@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Controls from "./pages/Controls";
 import Demo from "./pages/Demo";
+import PCControls from "./pages/PCControls";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/controls" element={<Controls />} />
+          <Route path="/pc" element={<PCControls />} />
           <Route path="/" element={<Index />} />
           <Route path="/demo" element={<Demo />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

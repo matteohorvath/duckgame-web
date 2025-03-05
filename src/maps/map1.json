@@ -1,0 +1,26 @@
+{
+  "name": "Flat Surface",
+  "width": 2000,
+  "height": 1000,
+  "backgroundColor": "#87CEEB",
+  "platforms": [
+    {
+      "x": 1000,
+      "y": 800,
+      "width": 2000,
+      "height": 20,
+      "color": "0x0000ff"
+    }
+  ],
+  "obstacles": [],
+  "spawnPoints": [
+    {
+      "x": 500,
+      "y": 700
+    },
+    {
+      "x": 1500,
+      "y": 700
+    }
+  ]
+}

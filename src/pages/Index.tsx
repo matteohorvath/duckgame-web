@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { Game } from "../engine/Game";
 import MainScene from "../scenes/MainScene";
+import { Link } from "react-router-dom";
+import { Button } from "../components/ui/button";
 
 const Index = () => {
   useEffect(() => {
@@ -39,7 +41,19 @@ const Index = () => {
     <div className="relative w-full h-screen bg-gradient-to-b from-gray-50 to-gray-100 overflow-hidden">
       <div id="phaser-container" className="absolute inset-0 z-10"></div>
 
-      {/* Debug Panel */}
+      {/* Controls Links */}
+      <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
+        <Link to="/controls">
+          <Button variant="outline" className="w-full">
+            Mobile Controls
+          </Button>
+        </Link>
+        <Link to="/pc">
+          <Button variant="outline" className="w-full">
+            PC Controls
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 };
